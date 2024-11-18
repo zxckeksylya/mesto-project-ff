@@ -11,21 +11,49 @@ const popupTypeEdit = document.querySelector(".popup_type_edit");
 const popupTypeNewCard = document.querySelector(".popup_type_new-card");
 const popupTypeImage = document.querySelector(".popup_type_image");
 
-function closePopup(evt) {
-  popupTypeNewCard.classList.remove("popup_is-opened");
-  popupTypeNewCard.removeEventListener("click", openPopup);
-  console.log("mem2");
+function editForm() {}
+
+function popupWrapper(popup) {
+  return function openPopup(evt) {
+    console.log(evt);
+    popup.classList.add("popup_is-opened");
+    const popupClose = popup.querySelector(".popup__close");
+
+    const closeByEsc = (evt) => {
+      if (evt.keyCode === 27) {
+        closeFunc(evt);
+      }
+    };
+
+    const closeByWrapper = (evt) => {
+      const currentTarget = evt.currentTarget;
+      const target = evt.target;
+      if (currentTarget === target) {
+        closeFunc(evt);
+      }
+    };
+
+    const closeFunc = function (evt) {
+      console.log(evt);
+      popup.classList.remove("popup_is-opened");
+      popupClose.removeEventListener("click", closeFunc);
+      popup.removeEventListener("click", closeByWrapper);
+      document.removeEventListener("keydown", closeByEsc);
+    };
+
+    popupClose.addEventListener("click", closeFunc);
+
+    popup.addEventListener("click", closeByWrapper);
+    document.addEventListener("keydown", closeByEsc);
+  };
 }
 
-function openPopup(evt) {
-  console.log("mem");
-  popupTypeNewCard.classList.add("popup_is-opened");
+const openPopupTypeEdit = popupWrapper(popupTypeEdit);
+const openPopupTypeNewCard = popupWrapper(popupTypeNewCard);
+const openPopupTypeImage = popupWrapper(popupTypeImage);
 
-  const popupClose = popupTypeNewCard.querySelector(".popup__close");
-  popupClose.addEventListener("click", closePopup);
-}
-
-profileAddButton.addEventListener("click", openPopup);
+profileEditButton.addEventListener("click", openPopupTypeEdit);
+profileAddButton.addEventListener("click", openPopupTypeNewCard);
 
 function addCard(card, removeCalback) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
@@ -36,6 +64,9 @@ function addCard(card, removeCalback) {
   cardElement.querySelector(".card__title").textContent = card.name;
 
   const likeButton = cardElement.querySelector(".card__like-button");
+
+  cardElement.addEventListener("click", openPopupTypeImage);
+
   likeButton.addEventListener("click", function (event) {
     event.target.classList.toggle("card__like-button_is-active");
   });
