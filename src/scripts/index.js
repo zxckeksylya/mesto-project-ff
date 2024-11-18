@@ -1,10 +1,32 @@
-// @todo: Темплейт карточки
+import initialCards from "./cards";
+import "../pages/index.css";
+
 const cardTemplate = document.querySelector("#card-template").content;
 
-// @todo: DOM узлы
 const cardsContainer = document.querySelector(".places__list");
+const profileAddButton = document.querySelector(".profile__add-button");
+const profileEditButton = document.querySelector(".profile__edit-button");
 
-// @todo: Функция создания карточки
+const popupTypeEdit = document.querySelector(".popup_type_edit");
+const popupTypeNewCard = document.querySelector(".popup_type_new-card");
+const popupTypeImage = document.querySelector(".popup_type_image");
+
+function closePopup(evt) {
+  popupTypeNewCard.classList.remove("popup_is-opened");
+  popupTypeNewCard.removeEventListener("click", openPopup);
+  console.log("mem2");
+}
+
+function openPopup(evt) {
+  console.log("mem");
+  popupTypeNewCard.classList.add("popup_is-opened");
+
+  const popupClose = popupTypeNewCard.querySelector(".popup__close");
+  popupClose.addEventListener("click", closePopup);
+}
+
+profileAddButton.addEventListener("click", openPopup);
+
 function addCard(card, removeCalback) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
 
@@ -23,13 +45,11 @@ function addCard(card, removeCalback) {
   return cardElement;
 }
 
-// @todo: Функция удаления карточки
 function removeCard(event) {
   const cardItem = event.target.closest(".card");
   cardItem.remove();
 }
 
-// @todo: Вывести карточки на страницу
 function generatePage() {
   initialCards.forEach((item) => {
     cardsContainer.append(addCard(item, removeCard));
