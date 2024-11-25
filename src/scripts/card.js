@@ -1,4 +1,4 @@
-import imagePopup from "./imagePopup";
+import modal from "./modal";
 
 const cardTemplate = document.querySelector("#card-template").content;
 
@@ -13,7 +13,7 @@ function Card(card, removeCalback) {
   const cardImage = cardElement.querySelector(".card__image");
   cardImage.setAttribute("src", card.link);
   cardImage.setAttribute("alt", card.name);
-  const popup = imagePopup(card);
+  const popup = modal.imageModal(card);
   cardImage.addEventListener("click", popup.open);
 
   const like = function (event) {
@@ -45,4 +45,7 @@ export const removeCard = (event) => {
   const cardItem = event.target.closest(".card");
   cardItem.remove();
 };
-export default Card;
+export default {
+  removeCard,
+  Card,
+};
