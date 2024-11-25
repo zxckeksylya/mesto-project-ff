@@ -1,41 +1,34 @@
 function Form(form, formControls, submitCallback) {
-    const validate = () => {
-        const status = Object.values(formControls).reduce((prevStatus, currControl) => {
-            if (prevStatus === false) {
-                return false;
-            }
+  const validate = () => {
+    const status = Object.values(formControls).reduce((prev, curr) => {
+      if (prev === false) {
+        return false;
+      }
+      return curr.validate();
+    }, true);
+  };
 
-            const answer = formControls[currControl].reduce((prevStatusCurrControl, currRuleForControl) => {
-                if (prevStatusCurrControl === false) {
-                    return false;
-                }
+  const submit = (evt) => {
+    evt.preventDefault();
+    if (validate) {
+      submitCallback();
+      reset();
+    } else {
+      console.log("не прошла валидация");
+    }
+  };
 
-                return currRuleForControl(form.elements[currControl].value);
-            }, true);
-            return answer;
-        }, true);
-        return status;
-    };
+  const reset = () => {
+    form.reset();
+  };
 
-    const submit = evt => {
-        evt.preventDefault();
-        if (validate) {
-            submitCallback(form);
-            reset();
-        } else {
-            console.log('не прошла валидация');
-        }
-    };
+  form.addEventListener("submit", submit);
+  form.addEventListener("reset", reset);
 
-    const reset = () => {
-        form.reset();
-    };
-
-    form.addEventListener('submit', submit);
-    return {
-        submit,
-        reset,
-    };
+  return {
+    submit,
+    reset,
+  };
 }
 
 export default Form;
