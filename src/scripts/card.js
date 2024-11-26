@@ -6,7 +6,6 @@ function Card(card, removeCalback) {
   const cardElement = cardTemplate.querySelector(".card").cloneNode(true);
 
   const likeButton = cardElement.querySelector(".card__like-button");
-  likeButton.addEventListener("click", like);
 
   cardElement.querySelector(".card__title").textContent = card.name;
 
@@ -25,10 +24,12 @@ function Card(card, removeCalback) {
   const removeCard = (event) => {
     deleteButton.removeEventListener("click", removeCard);
     likeButton.removeEventListener("click", like);
+    cardImage.removeEventListener("click", popup.open);
     removeCalback(event);
   };
 
   deleteButton.addEventListener("click", removeCard);
+  likeButton.addEventListener("click", like);
 
   const getElement = () => {
     return cardElement;
