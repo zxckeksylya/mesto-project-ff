@@ -73,7 +73,6 @@ function Control(control, validateRules, errorTemplate) {
 
       return curr(control.value);
     }, true);
-    console.log(isValid);
     if (!isValid) {
       showError();
     } else {
@@ -82,9 +81,10 @@ function Control(control, validateRules, errorTemplate) {
     return isValid;
   };
 
+  const subscribe = (handler = () => {}) => {};
+
   control.addEventListener("input", validate);
 
-  console.log(control.validationMessage);
   const showError = () => {
     errorTemplate.textContent = control.validationMessage;
     errorTemplate.classList.add("popup__input-error_active");
@@ -137,7 +137,6 @@ const patternValidate = (pattern) => {
 
 function Form({ form, controls, submitCallback = () => {} }) {
   const button = form.elements.button;
-
   const validate = () => {
     const status = Object.values(controls).reduce((prev, curr) => {
       if (prev === false) {
@@ -299,7 +298,6 @@ function cardFormModal(cardFormElement, userId) {
         calbacks,
         userId: userId,
       });
-      console.log(newCard.getElement());
       cardsContainer.prepend(newCard.getElement());
     } catch (error) {
       console.log(error);
@@ -370,7 +368,6 @@ function createDeleteCardModal(cardFormElement, cardId) {
     try {
       const answer = await api.cardsService.deleteCard({ cardId });
       const card = cardsContainer.querySelector('[data-id="' + cardId + '"]');
-      console.log(card);
       card.remove();
     } catch (error) {
       console.log(error);
@@ -411,7 +408,7 @@ function createAvatarEditModal({ editFormElement, editObj: { avatrImg } }) {
   const controls = {
     link: Control(
       editFormElement.elements["link"],
-      [required],
+      [required, patternValidate(/^(ftp|http|https):\/\/[^ "]+$/)],
       linkErrorTemplate
     ),
   };
@@ -444,7 +441,6 @@ function createAvatarEditModal({ editFormElement, editObj: { avatrImg } }) {
   };
 
   const open = () => {
-    console.log(avatrImg);
     controls.link.setValue(avatrImg.src);
     editFormElement.addEventListener("submit", form.submit);
     editFormElement.addEventListener("reset", form.reset);

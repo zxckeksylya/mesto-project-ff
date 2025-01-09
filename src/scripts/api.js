@@ -70,12 +70,10 @@ const userService = {
   },
 
   updateUserAvatar: async ({ body }) => {
-    console.log(body);
     return fecthService.patch({ url: "/users/me/avatar", body });
   },
 
   updateUserInfo: async ({ body }) => {
-    console.log(body);
     return fecthService.patch({ url: "/users/me", body });
   },
 };
