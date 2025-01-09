@@ -16,7 +16,12 @@ const handleFetch = async ({ method, url, body = {} }) => {
     options.body = JSON.stringify(body);
   }
 
-  return await fetch(`${config.url}${url}`, options).then((res) => res.json());
+  return await fetch(`${config.url}${url}`, options).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+    return new Error(`ошибка ${res.status}: ${res.statusText}`);
+  });
 };
 
 const fecthService = {
@@ -65,7 +70,8 @@ const userService = {
   },
 
   updateUserAvatar: async ({ body }) => {
-    return fecthService.patch({ url: "/users", body });
+    console.log(body);
+    return fecthService.patch({ url: "/users/me/avatar", body });
   },
 
   updateUserInfo: async ({ body }) => {

@@ -6,12 +6,18 @@ import createModal from "./modal";
 const cardsContainer = document.querySelector(".places__list");
 const profileAddButton = document.querySelector(".profile__add-button");
 const profileEditButton = document.querySelector(".profile__edit-button");
+const profileEditAvatarButton = document.querySelector(
+  ".profile__edit-avatar-button"
+);
 
 const cardTemplate = document.querySelector("#card-template").content;
 
 const editFormElement = document.forms["edit-profile"];
 const cardFormElement = document.forms["new-place"];
 const cardFormDelete = document.forms["delete-confirm"];
+
+const popupTypeEditAvatar = document.querySelector(".popup_type_edit-avatar");
+const avatarEditFormElement = document.forms["edit-avatar"];
 
 const popupTypeImage = document.querySelector(".popup_type_image");
 const cardImage = document.querySelector(".popup__image");
@@ -25,6 +31,8 @@ const popupTypeDeleteCard = document.querySelector(
 
 const title = document.querySelector(".profile__title");
 const description = document.querySelector(".profile__description");
+
+const avatarImg = document.querySelector(".profile__image");
 
 const userAvatar = document.querySelector(".profile__image");
 
@@ -128,6 +136,8 @@ const patternValidate = (pattern) => {
 };
 
 function Form({ form, controls, submitCallback = () => {} }) {
+  const button = form.elements.button;
+
   const validate = () => {
     const status = Object.values(controls).reduce((prev, curr) => {
       if (prev === false) {
@@ -142,7 +152,10 @@ function Form({ form, controls, submitCallback = () => {} }) {
   const submit = async (evt) => {
     evt.preventDefault();
     if (validate) {
+      const textMemo = button.textContent;
+      button.textContent = "Cохранение ...";
       await submitCallback();
+      button.textContent = textMemo;
       reset();
     } else {
     }
@@ -248,12 +261,17 @@ function cardFormModal(cardFormElement, userId) {
   const controls = {
     "place-name": Control(
       cardFormElement.elements["place-name"],
-      [required],
+      [
+        required,
+        minLengthValidate(2),
+        maxLengthValidate(30),
+        patternValidate(/^[a-zA-Zа-яА-ЯёЁ\-]+$/),
+      ],
       cardNameErrorTemplate
     ),
     link: Control(
       cardFormElement.elements["link"],
-      [required],
+      [required, patternValidate(/^(ftp|http|https):\/\/[^ "]+$/)],
       urlErrorTemplates
     ),
   };
@@ -266,7 +284,6 @@ function cardFormModal(cardFormElement, userId) {
 
     try {
       const answer = await api.cardsService.addNewCard({ body: cardObj });
-      console.log(answer);
       const calbacks = {
         cardTemplate,
         openModalImageCallBack: createImageModal(answer).open,
@@ -333,15 +350,12 @@ function likeHandler(userId) {
       } else {
         try {
           const newCard = await api.cardsService.likeCard({ cardId });
-          console.log(newCard);
           likes = newCard.likes;
-          console.log();
           likeButton.classList.add("card__like-button_is-active");
         } catch (error) {
           console.log(error);
         }
       }
-      console.log(likeCount);
 
       likeCount.textContent = likes.length;
     };
@@ -387,6 +401,67 @@ function createDeleteCardModal(cardFormElement, cardId) {
   };
 }
 
+function createAvatarEditModal({ editFormElement, editObj: { avatrImg } }) {
+  const modalAvatar = createModal(popupTypeEditAvatar, closeCalback);
+
+  const linkErrorTemplate = editFormElement.querySelector(
+    ".popup__input_type_url-error"
+  );
+
+  const controls = {
+    link: Control(
+      editFormElement.elements["link"],
+      [required],
+      linkErrorTemplate
+    ),
+  };
+
+  const submitCallback = async () => {
+    const body = {
+      avatar: controls.link.getValue(),
+    };
+
+    try {
+      const answer = await api.userService.updateUserAvatar({ body });
+      avatrImg.src = answer.avatar;
+    } catch (error) {
+      console.log(error);
+    }
+
+    modalAvatar.close();
+  };
+
+  const form = Form({
+    form: editFormElement,
+    controls,
+    submitCallback,
+  });
+
+  const closeCalback = () => {
+    form.reset();
+    editFormElement.removeEventListener("submit", form.submit);
+    editFormElement.removeEventListener("reset", form.reset);
+  };
+
+  const open = () => {
+    console.log(avatrImg);
+    controls.link.setValue(avatrImg.src);
+    editFormElement.addEventListener("submit", form.submit);
+    editFormElement.addEventListener("reset", form.reset);
+
+    modalAvatar.open();
+  };
+
+  const close = () => {
+    modalAvatar.close(() => {});
+  };
+
+  return {
+    open,
+    close,
+  };
+}
+
 const setUserInfo = ({ name, about }) => {
   title.textContent = name;
   description.textContent = about;
@@ -402,9 +477,6 @@ async function generatePage() {
   const user = await api.userService.getUserProfile();
   setUserInfo(user);
   setUserAvatar(user);
-  console.log(user);
-  console.log(cards);
-  console.log(await likeHandler("677e7cd5a9d8d810dedf840a"));
   cards.forEach((item) => {
     const calbacks = {
       cardTemplate,
@@ -426,10 +498,18 @@ async function generatePage() {
     editFormElement,
     editObj: { title, description },
   });
+
+  const avatarForm = createAvatarEditModal({
+    editFormElement: avatarEditFormElement,
+    editObj: {
+      avatrImg: avatarImg,
+    },
+  });
   const cardForm = cardFormModal(cardFormElement, user._id);
 
   profileEditButton.addEventListener("click", editForm.open);
   profileAddButton.addEventListener("click", cardForm.open);
+  profileEditAvatarButton.addEventListener("click", avatarForm.open);
 }
 
 await generatePage();
