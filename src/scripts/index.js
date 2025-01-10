@@ -2,6 +2,14 @@ import "../pages/index.css";
 import { api } from "./api";
 import card from "./card";
 import createModal from "./modal";
+import {
+  Control,
+  Form,
+  required,
+  maxLengthValidate,
+  minLengthValidate,
+  patternValidate,
+} from "./validate";
 
 const cardsContainer = document.querySelector(".places__list");
 const profileAddButton = document.querySelector(".profile__add-button");
@@ -56,120 +64,6 @@ function createImageModal(obj) {
   };
 }
 
-function Control(control, validateRules, errorTemplate) {
-  const getValue = () => {
-    return control.value;
-  };
-
-  const setValue = (value) => {
-    control.value = value;
-  };
-
-  const validate = () => {
-    const isValid = validateRules.reduce((prev, curr) => {
-      if (prev == false) {
-        return false;
-      }
-
-      return curr(control.value);
-    }, true);
-    if (!isValid) {
-      showError();
-    } else {
-      hideError();
-    }
-    return isValid;
-  };
-
-  const subscribe = (handler = () => {}) => {};
-
-  control.addEventListener("input", validate);
-
-  const showError = () => {
-    errorTemplate.textContent = control.validationMessage;
-    errorTemplate.classList.add("popup__input-error_active");
-  };
-
-  const hideError = () => {
-    errorTemplate.classList.remove("popup__input-error_active");
-    errorTemplate.textContent = "";
-  };
-
-  hideError();
-
-  return {
-    getValue,
-    setValue,
-    validate,
-  };
-}
-
-const required = (value) => {
-  if (value !== "") {
-    return true;
-  }
-  return false;
-};
-
-const minLengthValidate = (num) => {
-  return (value) => {
-    if (value.length > num) {
-      return true;
-    }
-    return false;
-  };
-};
-
-const maxLengthValidate = (num) => {
-  return (value) => {
-    if (value.length < num) {
-      return true;
-    }
-    return false;
-  };
-};
-
-const patternValidate = (pattern) => {
-  return (value) => {
-    return pattern.test(value);
-  };
-};
-
-function Form({ form, controls, submitCallback = () => {} }) {
-  const button = form.elements.button;
-  const validate = () => {
-    const status = Object.values(controls).reduce((prev, curr) => {
-      if (prev === false) {
-        return false;
-      }
-      return curr.validate();
-    }, true);
-
-    return status;
-  };
-
-  const submit = async (evt) => {
-    evt.preventDefault();
-    if (validate) {
-      const textMemo = button.textContent;
-      button.textContent = "Cохранение ...";
-      await submitCallback();
-      button.textContent = textMemo;
-      reset();
-    } else {
-    }
-  };
-
-  const reset = () => {
-    form.reset();
-  };
-
-  return {
-    submit,
-    reset,
-  };
-}
-
 function editFormModal({ editFormElement, editObj: { title, description } }) {
   const modalProfile = createModal(popupTypeEdit, closeCalback);
 
@@ -183,20 +77,26 @@ function editFormModal({ editFormElement, editObj: { title, description } }) {
     name: Control(
       editFormElement.elements["name"],
       [
-        required,
-        minLengthValidate(2),
-        maxLengthValidate(40),
-        patternValidate(/^[a-zA-Zа-яА-ЯёЁ\-]+$/),
+        [required, "Поле должно быть заполнено"],
+        [minLengthValidate(2), "Поле должно быть более 2 символов"],
+        [maxLengthValidate(40), "Поле должно быть менее 40 символов"],
+        [
+          patternValidate(/^[A-Za-zА-Яа-яЁё\s\-]+$/),
+          "Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы",
+        ],
       ],
       nameErrorTemplate
     ),
     description: Control(
       editFormElement.elements["description"],
       [
-        required,
-        minLengthValidate(2),
-        maxLengthValidate(200),
-        patternValidate(/^[a-zA-Zа-яА-ЯёЁ\-]+$/),
+        [required, "Поле должно быть заполнено"],
+        [minLengthValidate(2), "Поле должно быть более 2 символов"],
+        [maxLengthValidate(200), "Поле должно быть менее 200 символов"],
+        [
+          patternValidate(/^[A-Za-zА-Яа-яЁё\s\-]+$/),
+          "Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы",
+        ],
       ],
       descriptionErrorTemplate
     ),
@@ -261,16 +161,25 @@ function cardFormModal(cardFormElement, userId) {
     "place-name": Control(
       cardFormElement.elements["place-name"],
       [
-        required,
-        minLengthValidate(2),
-        maxLengthValidate(30),
-        patternValidate(/^[a-zA-Zа-яА-ЯёЁ\-]+$/),
+        [required, "Поле должно быть заполнено"],
+        [minLengthValidate(2), "Поле должно быть более 2 символов"],
+        [maxLengthValidate(30), "Поле должно быть менее 30 символов"],
+        [
+          patternValidate(/^[A-Za-zА-Яа-яЁё\s\-]+$/),
+          "Разрешены только латинские, кириллические буквы, знаки дефиса и пробелы",
+        ],
       ],
       cardNameErrorTemplate
     ),
     link: Control(
       cardFormElement.elements["link"],
-      [required, patternValidate(/^(ftp|http|https):\/\/[^ "]+$/)],
+      [
+        [required, "Поле должно быть заполнено"],
+        [
+          patternValidate(/^(ftp|http|https):\/\/[^ "]+$/),
+          "Должна отображаться ссылка",
+        ],
+      ],
       urlErrorTemplates
     ),
   };
@@ -408,7 +317,13 @@ function createAvatarEditModal({ editFormElement, editObj: { avatrImg } }) {
   const controls = {
     link: Control(
       editFormElement.elements["link"],
-      [required, patternValidate(/^(ftp|http|https):\/\/[^ "]+$/)],
+      [
+        [required, "Поле должно быть заполнено"],
+        [
+          patternValidate(/^(ftp|http|https):\/\/[^ "]+$/),
+          "Должна отображаться ссылка",
+        ],
+      ],
       linkErrorTemplate
     ),
   };

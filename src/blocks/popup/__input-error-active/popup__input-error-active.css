@@ -1,0 +1,7 @@
+.popup__input-error_active {
+  border-bottom: 1px solid red;
+}
+
+.popup__input-error-template_active {
+  color: red;
+}
